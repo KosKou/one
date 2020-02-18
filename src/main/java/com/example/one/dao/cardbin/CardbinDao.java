@@ -7,10 +7,14 @@ import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 
+/*
+* Educational purpose only, this has no uses.
+* */
+
 public interface CardbinDao {
     //CREATE
     Single<CardBin> addCardbinInRepository(CardBin cardbin);
-    Single<CardBin> addCardbinAttributeInRepository(Integer cardbinId, Attribute attribute);
+    Single<CardBin> addCardbinAttributeInRepository(CardBin cardbin);
     //RETRIEVE
     Observable<CardbinResponse> retrieveAllCardbinsFromRepository();
     Observable<Attribute> retrieveAllCardbinAttributesFromRepository(Integer cardbinId);

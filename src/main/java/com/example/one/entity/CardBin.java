@@ -27,8 +27,8 @@ public class CardBin {
     @NotEmpty
     private String binType;
 
-    @JsonIgnore
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JsonIgnore //The flow follows one way -> from cardBin to attributes
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)//EAGER gets all db records
     private List<Attribute> attributes;
 
     @NotEmpty

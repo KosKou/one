@@ -1,5 +1,6 @@
 package com.example.one.service.cardbin;
 
+import com.example.one.dao.cardbin.CardbinDao;
 import com.example.one.entity.Attribute;
 import com.example.one.entity.CardBin;
 import com.example.one.repository.AttributeRepository;
@@ -22,8 +23,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
-@RequiredArgsConstructor
+@Transactional //This annotation allows the communication between the application and LocalDatabase
+@RequiredArgsConstructor //Creates the constructor/injection to all the final variables.
 public class CardbinServiceImpl implements CardbinService{
 
     private final CardbinRepository cardbinRepository;
@@ -80,13 +81,6 @@ public class CardbinServiceImpl implements CardbinService{
                 .filter(cardbinResponse -> cardbinResponse.getState().equals("ACTIVE"));
     }
 
-//    private List<CardbinResponse> toCardbinResponseList(List<CardBin> cardbinList){
-//        return cardbinList
-//                .stream()
-//                .map(this::toCardbinResponse)
-//                .collect(Collectors.toList());
-//    }
-
     private CardbinResponse toCardbinResponse(CardBin cardbin){
         return CardbinResponse.builder()
                 .id(cardbin.getId())
@@ -107,14 +101,6 @@ public class CardbinServiceImpl implements CardbinService{
                         .collect(Collectors.toList()))
                 .flatMapIterable(atrib->atrib)
                 .doOnError(throwable -> new EntityNotFoundException());
-//           return Observable.fromCallable(() -> cardbinRepository.findById(cardbinId)
-//                   .filter(cardbin -> cardbin
-//                           .getAttributes()
-//                           .stream()
-//                           .filter(attribute -> attribute.getState().equals("ACTIVE"))
-//                           .allMatch(Objects::nonNull)
-//                   )
-//           );
     }
 
     @Override

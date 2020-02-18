@@ -24,6 +24,10 @@ import io.reactivex.Single;
 import io.reactivex.schedulers.Schedulers;
 import lombok.RequiredArgsConstructor;
 
+/*
+ * FLOW: Expose/Controller -> Business/Service -> DAO/Repository -> PROXY API/DB
+ * */
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping(value = "/api/cardbins")

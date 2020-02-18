@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 * Banner Gonzales: "DAO layer is the layer that connects with the data of DB/API".
 * This replace the repository layer following the flow of DAO->Proxy->Business API.
 * FLOW: Expose/Controller -> Business/Service -> DAO/Repository -> PROXY API/DB
-* I'm creating this layer for understandability purposes only.
+* I'm creating this layer for understandability purposes only "Methods will return null".
 * */
 
 //@Repository
@@ -26,12 +26,12 @@ public class CardbinDaoImpl implements CardbinDao {
 
     @Override
     public Single<CardBin> addCardbinInRepository(CardBin cardbin) {
-        return null;
+        return Single.just(cardbinRepository.save(cardbin));
     }
 
     @Override
-    public Single<CardBin> addCardbinAttributeInRepository(Integer cardbinId, Attribute attribute) {
-        return null;
+    public Single<CardBin> addCardbinAttributeInRepository(CardBin cardbin) {
+        return Single.just(cardbinRepository.save(cardbin));
     }
 
     @Override
