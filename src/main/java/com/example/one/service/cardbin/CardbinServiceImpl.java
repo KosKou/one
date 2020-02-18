@@ -1,7 +1,7 @@
 package com.example.one.service.cardbin;
 
 import com.example.one.entity.Attribute;
-import com.example.one.entity.Cardbin;
+import com.example.one.entity.CardBin;
 import com.example.one.repository.AttributeRepository;
 import com.example.one.repository.CardbinRepository;
 import com.example.one.servicedto.CardbinResponse;
@@ -17,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
-import javax.smartcardio.Card;
 import javax.transaction.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,29 +29,21 @@ public class CardbinServiceImpl implements CardbinService{
     private final CardbinRepository cardbinRepository;
     private final AttributeRepository attributeRepository;
 
-
-    private List<Cardbin> findCardbins(List<Cardbin> cardbinList){
-        return cardbinList
-                .stream()
-                .filter(cardbin -> findCardbin(cardbin))
-                .collect(Collectors.toList());
-    }
-
-    private boolean findCardbin(Cardbin cardbin){
+    private boolean findCardbin(CardBin cardbin){
         return cardbin.getState().equals("ACTIVE");
     }
 
     @Override
-    public Single addCardbin(AddCardbinWebRequest addCardbinWebRequest) {
+    public Single<CardBin> addCardbin(AddCardbinWebRequest addCardbinWebRequest) {
         return addCardbinToRepository(addCardbinWebRequest);
     }
 
-    private Single<Cardbin> addCardbinToRepository(AddCardbinWebRequest addCardbinWebRequest){
+    private Single<CardBin> addCardbinToRepository(AddCardbinWebRequest addCardbinWebRequest){
         return Single.just(cardbinRepository.save(toCardbin(addCardbinWebRequest)));
     }
 
-    private Cardbin toCardbin(AddCardbinWebRequest addCardbinWebRequest){
-        return Cardbin.builder()
+    private CardBin toCardbin(AddCardbinWebRequest addCardbinWebRequest){
+        return CardBin.builder()
                 .binNumber(addCardbinWebRequest.getBinNumber())
                 .binType(addCardbinWebRequest.getBinType())
                 .state("ACTIVE")
@@ -60,14 +51,14 @@ public class CardbinServiceImpl implements CardbinService{
     }
 
     @Override
-    public Single addCardbinAttribute(Integer cardbinId, AddAttributeWebRequest addAttributeWebRequest) {
+    public Single<CardBin> addCardbinAttribute(Integer cardbinId, AddAttributeWebRequest addAttributeWebRequest) {
         return Single.fromCallable(() -> cardbinRepository.findById(cardbinId).get())
                 .map(cardbin -> addAttributeList(cardbin, toAttribute(addAttributeWebRequest)))
                 .doOnSuccess(cardbin -> cardbinRepository.save(cardbin))
                 .doOnError(throwable -> new EntityNotFoundException());
     }
 
-    private Cardbin addAttributeList(Cardbin cardbin, Attribute attribute){
+    private CardBin addAttributeList(CardBin cardbin, Attribute attribute){
         List<Attribute> attributeList = cardbin.getAttributes();
         attributeList.add(attribute);
         cardbin.setAttributes(attributeList);
@@ -83,22 +74,20 @@ public class CardbinServiceImpl implements CardbinService{
     }
 
     @Override
-    public Observable<List<CardbinResponse>> retrieveAllCardbins() {
-        return Observable.fromCallable(() -> cardbinRepository.findAll())
-                .map(this::toCardbinResponseList)
-                .map(cardbinResponses -> cardbinResponses.stream()
-                        .filter(cardbinResponse -> cardbinResponse.getState().equals("ACTIVE"))
-                        .collect(Collectors.toList()));
-    }
-
-    private List<CardbinResponse> toCardbinResponseList(List<Cardbin> cardbinList){
-        return cardbinList
-                .stream()
+    public Observable<CardbinResponse> retrieveAllCardbins() {
+        return Observable.fromIterable(cardbinRepository.findAll())
                 .map(this::toCardbinResponse)
-                .collect(Collectors.toList());
+                .filter(cardbinResponse -> cardbinResponse.getState().equals("ACTIVE"));
     }
 
-    private CardbinResponse toCardbinResponse(Cardbin cardbin){
+//    private List<CardbinResponse> toCardbinResponseList(List<CardBin> cardbinList){
+//        return cardbinList
+//                .stream()
+//                .map(this::toCardbinResponse)
+//                .collect(Collectors.toList());
+//    }
+
+    private CardbinResponse toCardbinResponse(CardBin cardbin){
         return CardbinResponse.builder()
                 .id(cardbin.getId())
                 .binNumber(cardbin.getBinNumber())
@@ -109,11 +98,14 @@ public class CardbinServiceImpl implements CardbinService{
     }
 
     @Override
-    public Observable<List<Attribute>> retrieveAllCardbinAttributes(Integer cardbinId) {
+    public Observable<Attribute> retrieveAllCardbinAttributes(Integer cardbinId) {
         return Observable.fromCallable(() -> cardbinRepository.findById(cardbinId))
                 .map(cardbin -> cardbin.get().getAttributes())
-                .map(attributes -> attributes.stream().filter(attribute -> attribute.getState().equals("ACTIVE"))
-                .collect(Collectors.toList()))
+                .map(attributes -> attributes
+                        .stream()
+                        .filter(attribute -> attribute.getState().equals("ACTIVE"))
+                        .collect(Collectors.toList()))
+                .flatMapIterable(atrib->atrib)
                 .doOnError(throwable -> new EntityNotFoundException());
 //           return Observable.fromCallable(() -> cardbinRepository.findById(cardbinId)
 //                   .filter(cardbin -> cardbin
@@ -155,8 +147,8 @@ public class CardbinServiceImpl implements CardbinService{
                 .ignoreElement();
     }
 
-    private Cardbin toUpdateCardbin(Cardbin cardbin, UpdateCardbinWebRequest updateCardbinWebRequest){
-        return Cardbin.builder()
+    private CardBin toUpdateCardbin(CardBin cardbin, UpdateCardbinWebRequest updateCardbinWebRequest){
+        return CardBin.builder()
                 .id(cardbin.getId())
                 .binType(updateCardbinWebRequest.getBinType())
                 .binNumber(updateCardbinWebRequest.getBinNumber())
@@ -211,10 +203,10 @@ public class CardbinServiceImpl implements CardbinService{
                 .ignoreElement();
     }
 
-    private Cardbin toDeleteCardbinAttributes(Cardbin cardbin, Integer attributeId){
+    private CardBin toDeleteCardbinAttributes(CardBin cardbin, Integer attributeId){
         cardbin.setAttributes(cardbin.getAttributes().stream()
-        .filter(attribute -> attribute.getId() != attributeId)
-        .collect(Collectors.toList()));
+                .filter(attribute -> attribute.getId() != attributeId)
+                .collect(Collectors.toList()));
         return cardbin;
     }
 }

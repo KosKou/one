@@ -17,7 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 @Entity
 @Table(name = "cardbins")
-public class Cardbin {
+public class CardBin {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
