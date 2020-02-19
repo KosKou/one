@@ -40,7 +40,7 @@ public class CardBinController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = {MediaType.APPLICATION_STREAM_JSON_VALUE}
     )
-    public Single<BaseWebResponse<?>> createCardbin(@RequestBody AddCardbinWebRequest addCardbinWebRequest) {
+    public Single<BaseWebResponse<?>> createCardBin(@RequestBody AddCardbinWebRequest addCardbinWebRequest) {
         return cardbinService.addCardbin(addCardbinWebRequest)
                 .subscribeOn(Schedulers.io())
                 .map(o -> BaseWebResponse.successNoData());
@@ -65,7 +65,7 @@ public class CardBinController {
     public Observable<BaseWebResponse<CardbinResponse>> retrieveAllCardbins() {
         return cardbinService.retrieveAllCardbins()
                 .subscribeOn(Schedulers.io())
-                .map(o -> BaseWebResponse.successWithData(o));
+                .map(BaseWebResponse::successWithData);
     }
 
     @GetMapping(
@@ -75,7 +75,7 @@ public class CardBinController {
     public Single<BaseWebResponse<CardbinResponse>> retrieveCardbin(@PathVariable(value = "cardbinId") Integer cardbinId) {
         return cardbinService.retrieveCardbin(cardbinId)
                 .subscribeOn(Schedulers.io())
-                .map(o -> BaseWebResponse.successWithData(o));
+                .map(BaseWebResponse::successWithData);
     }
 
     @GetMapping(
@@ -85,7 +85,7 @@ public class CardBinController {
     public Observable<BaseWebResponse<Attribute>>  retrieveCardbinAttributes(@PathVariable(value = "cardbinId") Integer cardbinId) {
         return cardbinService.retrieveAllCardbinAttributes(cardbinId)
                 .subscribeOn(Schedulers.io())
-                .map(o -> BaseWebResponse.successWithData(o));
+                .map(BaseWebResponse::successWithData);
     }
 
     @GetMapping(
@@ -97,7 +97,7 @@ public class CardBinController {
             @PathVariable(value = "attributeId") Integer attributeId) {
         return cardbinService.retrieveCardbinAttribute(cardbinId, attributeId)
                 .subscribeOn(Schedulers.io())
-                .map(o -> BaseWebResponse.<Attribute>successWithData(o));
+                .map(BaseWebResponse::successWithData);
     }
 
     //UPDATE
@@ -108,9 +108,9 @@ public class CardBinController {
     )
     public Single<BaseWebResponse<?>> updateCardbin(@PathVariable(value = "cardbinId") Integer cardbinId,
                                                     @RequestBody UpdateCardbinWebRequest updateCardbinWebRequest) {
-        return cardbinService.updateCardbin(cardbinId, updateCardbinWebRequest)
+        return cardbinService.updateCardBin(cardbinId, updateCardbinWebRequest)
                 .subscribeOn(Schedulers.io())
-                .toSingle(() -> BaseWebResponse.successNoData());
+                .toSingle(BaseWebResponse::successNoData);
     }
 
     @PutMapping(
@@ -121,9 +121,9 @@ public class CardBinController {
     public Single<BaseWebResponse<?>> updateCardbinAttribute(@PathVariable(value = "cardbinId") Integer cardbinId,
                                                              @PathVariable(value = "attributeId") Integer attributeId,
                                                              @RequestBody UpdateAttributeWebRequest updateAttributeWebRequest) {
-        return cardbinService.updateCardbinAttribute(cardbinId, attributeId, updateAttributeWebRequest)
+        return cardbinService.updateCardBinAttribute(cardbinId, attributeId, updateAttributeWebRequest)
                 .subscribeOn(Schedulers.io())
-                .toSingle(() -> BaseWebResponse.successNoData());
+                .toSingle(BaseWebResponse::successNoData);
     }
     //DELETE
 
@@ -132,9 +132,9 @@ public class CardBinController {
             produces = {MediaType.APPLICATION_STREAM_JSON_VALUE}
     )
     public Single<BaseWebResponse<?>> deleteCardbin(@PathVariable(value = "cardbinId") Integer cardbinId) {
-        return cardbinService.deleteCardbin(cardbinId)
+        return cardbinService.deleteCardBin(cardbinId)
                 .subscribeOn(Schedulers.io())
-                .toSingle(() -> BaseWebResponse.successNoData());
+                .toSingle(BaseWebResponse::successNoData);
     }
 
     @DeleteMapping(
@@ -143,8 +143,8 @@ public class CardBinController {
     )
     public Single<BaseWebResponse<?>> deleteCardbinAttribute(@PathVariable(value = "cardbinId") Integer cardbinId,
                                                              @PathVariable(value = "attributeId") Integer attributeId) {
-        return cardbinService.deleteCardbinAttribute(cardbinId, attributeId)
+        return cardbinService.deleteCardBinAttribute(cardbinId, attributeId)
                 .subscribeOn(Schedulers.io())
-                .toSingle(() -> BaseWebResponse.successNoData());
+                .toSingle(BaseWebResponse::successNoData);
     }
 }

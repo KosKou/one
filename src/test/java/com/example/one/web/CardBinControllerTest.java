@@ -51,10 +51,10 @@ public class CardBinControllerTest {
     }
 
     @Test
-    public void createCardbin() {
+    public void createCardBin() {
         Mockito.when(cardbinService.addCardbin(Mockito.any()))
                 .thenReturn(Single.just(Mockito.mock(CardBin.class)));
-        TestObserver<BaseWebResponse<?>> testObserver = controller.createCardbin(AddCardbinWebRequest.builder()
+        TestObserver<BaseWebResponse<?>> testObserver = controller.createCardBin(AddCardbinWebRequest.builder()
                 .binNumber(1210)
                 .binType("TEST 1")
                 .build()).test();
@@ -129,8 +129,8 @@ public class CardBinControllerTest {
     public void updateCardbin() {
         Completable testing = Completable.complete();
         testing.subscribeOn(Schedulers.io())
-                .toSingle(() -> BaseWebResponse.successNoData());
-        Mockito.when(cardbinService.updateCardbin(Mockito.anyInt(),
+                .toSingle(BaseWebResponse::successNoData);
+        Mockito.when(cardbinService.updateCardBin(Mockito.anyInt(),
                 Mockito.any()))
                 .thenReturn(testing);
         TestObserver<BaseWebResponse<?>> testObserver = controller
@@ -144,9 +144,9 @@ public class CardBinControllerTest {
     public void testUpdateCardbinAttribute() {
         Completable testing = Completable.complete();
         testing.subscribeOn(Schedulers.io())
-                .toSingle(() -> BaseWebResponse.successNoData());
+                .toSingle(BaseWebResponse::successNoData);
         Mockito.when(cardbinService
-                .updateCardbinAttribute(Mockito.anyInt(), Mockito.anyInt(),Mockito.any()))
+                .updateCardBinAttribute(Mockito.anyInt(), Mockito.anyInt(),Mockito.any()))
                 .thenReturn(testing);
         TestObserver<BaseWebResponse<?>> testObserver = controller.updateCardbinAttribute(1,1
                 , UpdateAttributeWebRequest.builder().build()).test();
@@ -158,8 +158,8 @@ public class CardBinControllerTest {
     public void deleteCardbin() {
         Completable testing = Completable.complete();
         testing.subscribeOn(Schedulers.io())
-                .toSingle(() -> BaseWebResponse.successNoData());
-        Mockito.when(cardbinService.deleteCardbin(Mockito.anyInt()))
+                .toSingle(BaseWebResponse::successNoData);
+        Mockito.when(cardbinService.deleteCardBin(Mockito.anyInt()))
                 .thenReturn(testing);
         TestObserver<BaseWebResponse<?>> testObserver = controller.deleteCardbin(1).test();
         testObserver.awaitTerminalEvent();
@@ -170,8 +170,8 @@ public class CardBinControllerTest {
     public void deleteCardbinAttribute() {
         Completable testing = Completable.complete();
         testing.subscribeOn(Schedulers.io())
-                .toSingle(() -> BaseWebResponse.successNoData());
-        Mockito.when(cardbinService.deleteCardbinAttribute(Mockito.anyInt(), Mockito.anyInt()))
+                .toSingle(BaseWebResponse::successNoData);
+        Mockito.when(cardbinService.deleteCardBinAttribute(Mockito.anyInt(), Mockito.anyInt()))
                 .thenReturn(testing);
         TestObserver<BaseWebResponse<?>> testObserver = controller.deleteCardbinAttribute(1,2).test();
         testObserver.awaitTerminalEvent();

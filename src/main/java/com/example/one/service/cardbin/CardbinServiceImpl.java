@@ -1,10 +1,9 @@
 package com.example.one.service.cardbin;
 
-import com.example.one.dao.cardbin.CardbinDao;
 import com.example.one.entity.Attribute;
 import com.example.one.entity.CardBin;
 import com.example.one.repository.AttributeRepository;
-import com.example.one.repository.CardbinRepository;
+import com.example.one.repository.CardBinRepository;
 import com.example.one.servicedto.CardbinResponse;
 import com.example.one.webdto.request.AddAttributeWebRequest;
 import com.example.one.webdto.request.AddCardbinWebRequest;
@@ -22,12 +21,19 @@ import javax.transaction.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/*
+* Why does you use findById() instead of getOne() Method?
+* "getOne gets you a reference, but not the actual entity.
+* Get one does noe fetch the object from the DB.
+* It just creates an object with the ID you specified." - StackOverflow
+* */
+
 @Service
 @Transactional //This annotation allows the communication between the application and LocalDatabase
 @RequiredArgsConstructor //Creates the constructor/injection to all the final variables.
 public class CardbinServiceImpl implements CardbinService{
 
-    private final CardbinRepository cardbinRepository;
+    private final CardBinRepository cardbinRepository;
     private final AttributeRepository attributeRepository;
 
     private boolean findCardbin(CardBin cardbin){
@@ -53,9 +59,9 @@ public class CardbinServiceImpl implements CardbinService{
 
     @Override
     public Single<CardBin> addCardbinAttribute(Integer cardbinId, AddAttributeWebRequest addAttributeWebRequest) {
-        return Single.fromCallable(() -> cardbinRepository.findById(cardbinId).get())
+        return Single.fromCallable(() -> cardbinRepository.findById(cardbinId).orElse(null))
                 .map(cardbin -> addAttributeList(cardbin, toAttribute(addAttributeWebRequest)))
-                .doOnSuccess(cardbin -> cardbinRepository.save(cardbin))
+                .doOnSuccess(cardbinRepository::save)
                 .doOnError(throwable -> new EntityNotFoundException());
     }
 
@@ -93,8 +99,8 @@ public class CardbinServiceImpl implements CardbinService{
 
     @Override
     public Observable<Attribute> retrieveAllCardbinAttributes(Integer cardbinId) {
-        return Observable.fromCallable(() -> cardbinRepository.findById(cardbinId))
-                .map(cardbin -> cardbin.get().getAttributes())
+        return Observable.fromCallable(() -> cardbinRepository.findById(cardbinId).orElse(null))
+                .map(CardBin::getAttributes)
                 .map(attributes -> attributes
                         .stream()
                         .filter(attribute -> attribute.getState().equals("ACTIVE"))
@@ -105,7 +111,7 @@ public class CardbinServiceImpl implements CardbinService{
 
     @Override
     public Single<CardbinResponse> retrieveCardbin(Integer cardbinId) {
-        return Single.fromCallable(() -> cardbinRepository.getOne(cardbinId))
+        return Single.fromCallable(() -> cardbinRepository.findById(cardbinId).orElse(null))
                 .flatMap(cardbin -> {
                     if (findCardbin(cardbin))
                         return Single.just(toCardbinResponse(cardbin));
@@ -116,24 +122,24 @@ public class CardbinServiceImpl implements CardbinService{
 
     @Override
     public Single<Attribute> retrieveCardbinAttribute(Integer cardbinId, Integer attributeId) {
-        return Single.just(cardbinRepository.findById(cardbinId).get().
-                getAttributes()
-                .stream()
-                .filter(attribute -> attribute.getId() == attributeId))
-                .map(attributeStream -> attributeStream.findFirst().get())
-                .doOnError(throwable -> new EntityNotFoundException());
+        return Single.fromCallable(() -> cardbinRepository.findById(cardbinId).orElse(null))
+                .map(CardBin::getAttributes)
+                .flatMapObservable(Observable::fromIterable)
+                .filter(attribute -> attribute.getId() == attributeId
+                        && attribute.getState().equals("ACTIVE"))
+                .firstOrError();
     }
 
     @Override
-    public Completable updateCardbin(Integer cardbinId, UpdateCardbinWebRequest updateCardbinWebRequest) {
-        return Maybe.fromCallable(() -> cardbinRepository.getOne(cardbinId))
-                .map(cardbin -> toUpdateCardbin(cardbin, updateCardbinWebRequest))
-                .doOnSuccess(cardbin -> cardbinRepository.save(cardbin))
-                .switchIfEmpty(Maybe.error(() -> new EntityNotFoundException()))
+    public Completable updateCardBin(Integer cardBinId, UpdateCardbinWebRequest updateCardbinWebRequest) {
+        return Maybe.fromCallable(() -> cardbinRepository.findById(cardBinId).orElse(null))
+                .map(cardBin -> toUpdateCardBin(cardBin, updateCardbinWebRequest))
+                .doOnSuccess(cardbinRepository::save)
+                .switchIfEmpty(Maybe.error(EntityNotFoundException::new))
                 .ignoreElement();
     }
 
-    private CardBin toUpdateCardbin(CardBin cardbin, UpdateCardbinWebRequest updateCardbinWebRequest){
+    private CardBin toUpdateCardBin(CardBin cardbin, UpdateCardbinWebRequest updateCardbinWebRequest){
         return CardBin.builder()
                 .id(cardbin.getId())
                 .binType(updateCardbinWebRequest.getBinType())
@@ -144,19 +150,15 @@ public class CardbinServiceImpl implements CardbinService{
     }
 
     @Override
-    public Completable updateCardbinAttribute(Integer cardbinId, Integer attributeId, UpdateAttributeWebRequest updateAttributeWebRequest) {
-        return updateCardbinAttributeInRepository(cardbinId,
-                toAttribute(attributeRepository.getOne(attributeId), updateAttributeWebRequest));
+    public Completable updateCardBinAttribute(Integer cardBinId, Integer attributeId, UpdateAttributeWebRequest updateAttributeWebRequest) {
+        return updateCardBinAttributeInRepository(cardBinId,
+                toAttribute(attributeRepository.findById(attributeId).orElse(null)
+                        , updateAttributeWebRequest));
     }
 
-    private Completable updateCardbinAttributeInRepository(Integer cardbinId, Attribute attribute){
-        return Maybe.fromCallable(() -> cardbinRepository.getOne(cardbinId))
-                .map(cardbin -> {
-                    if (findCardbin(cardbin))
-                        return attributeRepository.save(attribute);
-                    else
-                        return new EntityNotFoundException();
-                })
+    private Completable updateCardBinAttributeInRepository(Integer cardBinId, Attribute attribute){
+        return Maybe.fromCallable(() -> cardbinRepository.findById(cardBinId).orElse(null))
+                .doOnSuccess(cardBin -> attributeRepository.save(attribute))
                 .ignoreElement();
     }
 
@@ -170,26 +172,25 @@ public class CardbinServiceImpl implements CardbinService{
     }
 
     @Override
-    public Completable deleteCardbin(Integer cardbinId) {
-        return Maybe.fromCallable(() -> cardbinRepository.getOne(cardbinId))
-                .map(cardbin -> {
-                    cardbin.setState("INACTIVE");
-                    return cardbin;
+    public Completable deleteCardBin(Integer cardBinId) {
+        return Maybe.fromCallable(() -> cardbinRepository.getOne(cardBinId))
+                .map(cardBin -> {
+                    cardBin.setState("INACTIVE");
+                    return cardBin;
                 })
-                .doOnSuccess(cardbin -> cardbinRepository.save(cardbin))
+                .doOnSuccess(cardbinRepository::save)
                 .ignoreElement();
-
     }
 
     @Override
-    public Completable deleteCardbinAttribute(Integer cardbinId, Integer attributeId) {
-        return Maybe.fromCallable(() -> cardbinRepository.getOne(cardbinId))
-                .map(cardbin -> toDeleteCardbinAttributes(cardbin, attributeId))
-                .doOnSuccess(cardbin -> cardbinRepository.save(cardbin))
+    public Completable deleteCardBinAttribute(Integer cardBinId, Integer attributeId) {
+        return Maybe.fromCallable(() -> cardbinRepository.findById(cardBinId).orElse(null))
+                .map(cardBin -> toDeleteCardBinAttributes(cardBin, attributeId))
+                .doOnSuccess(cardbinRepository::save)
                 .ignoreElement();
     }
 
-    private CardBin toDeleteCardbinAttributes(CardBin cardbin, Integer attributeId){
+    private CardBin toDeleteCardBinAttributes(CardBin cardbin, Integer attributeId){
         cardbin.setAttributes(cardbin.getAttributes().stream()
                 .filter(attribute -> attribute.getId() != attributeId)
                 .collect(Collectors.toList()));

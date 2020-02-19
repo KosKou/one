@@ -6,5 +6,4 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface AttributeRepository extends JpaRepository<Attribute, Integer> {
-
 }

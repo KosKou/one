@@ -3,7 +3,7 @@ package com.example.one.dao.cardbin;
 import com.example.one.entity.Attribute;
 import com.example.one.entity.CardBin;
 import com.example.one.repository.AttributeRepository;
-import com.example.one.repository.CardbinRepository;
+import com.example.one.repository.CardBinRepository;
 import com.example.one.servicedto.CardbinResponse;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
@@ -22,7 +22,7 @@ public class CardbinDaoImpl implements CardbinDao {
 
     private final AttributeRepository attributeRepository;
 
-    private final CardbinRepository cardbinRepository;
+    private final CardBinRepository cardbinRepository;
 
     @Override
     public Single<CardBin> addCardbinInRepository(CardBin cardbin) {

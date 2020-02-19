@@ -22,10 +22,10 @@ public interface CardbinService {
     Single<CardbinResponse> retrieveCardbin(Integer id);
     Single<Attribute> retrieveCardbinAttribute(Integer cardbinId, Integer attributeId);
     //UPDATE
-    Completable updateCardbin(Integer cardbinId, UpdateCardbinWebRequest updateCardbinWebRequest);
-    Completable updateCardbinAttribute(Integer cardbinId, Integer attributeId, UpdateAttributeWebRequest updateAttributeWebRequest);
+    Completable updateCardBin(Integer cardbinId, UpdateCardbinWebRequest updateCardbinWebRequest);
+    Completable updateCardBinAttribute(Integer cardbinId, Integer attributeId, UpdateAttributeWebRequest updateAttributeWebRequest);
     //DELETE
-    Completable deleteCardbin(Integer cardbinId);
-    Completable deleteCardbinAttribute(Integer cardbinId, Integer attributeId);
+    Completable deleteCardBin(Integer cardbinId);
+    Completable deleteCardBinAttribute(Integer cardbinId, Integer attributeId);
 
 }
